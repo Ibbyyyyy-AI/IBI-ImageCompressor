@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IBI TOOLS — Free Online Image, PDF & AI Tools</title>
+  <meta name="description" content="IBI TOOLS — Fast, free online tools for images, PDFs, converters, AI utilities, and more. Clean UI, no sign‑up needed.">
+  <meta name="keywords" content="image tools, pdf tools, compressor, converter, IBI TOOLS, free tools online">
+  <link rel="canonical" href="https://ibi-tools.com/">
+
+  <!-- OpenGraph SEO -->
+  <meta property="og:title" content="IBI TOOLS — Free Online Tools">
+  <meta property="og:description" content="Fast and easy tools for images, PDFs, and AI.">
+  <meta property="og:type" content="website">
+
+  <style>
+    :root{--bg:#ffffff;--text:#0f172a;--card:#f8fafc;--accent:#4f46e5}
+    @media (prefers-color-scheme:dark){:root{--bg:#0f172a;--text:#f8fafc;--card:#1e293b;--accent:#6366f1}}
+
+    body{margin:0;font-family:Arial;background:var(--bg);color:var(--text)}
+
+    /* Navbar */
+    nav{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;background:var(--card);position:sticky;top:0;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+    nav .logo{font-size:1.4rem;font-weight:bold;color:var(--accent)}
+    nav input{padding:.5rem 1rem;border-radius:20px;border:1px solid #cbd5e1;width:200px;transition:.2s}
+    nav input:focus{width:260px;outline:none;border-color:var(--accent)}
+
+    header{text-align:center;padding:2rem 1rem}
+    header h1{font-size:2.3rem;margin:0}
+    header p{color:#64748b;margin-top:.5rem}
+
+    /* Categories */
+    .categories{display:flex;justify-content:center;gap:1rem;margin-top:1.5rem;flex-wrap:wrap}
+    .cat-btn{padding:.5rem 1.2rem;background:var(--card);border:1px solid rgba(0,0,0,0.1);border-radius:20px;cursor:pointer;font-size:.9rem}
+    .cat-btn:hover{background:var(--accent);color:white}
+
+    /* Tool Cards */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.2rem;padding:1.5rem}
+    .tool-card{background:var(--card);padding:1.3rem;border-radius:14px;box-shadow:0 4px 12px rgba(0,0,0,0.06);transition:.2s;border:1px solid rgba(0,0,0,0.05);cursor:pointer;opacity:0;transform:translateY(20px);animation:fadeUp .5s forwards}
+    .tool-card:hover{transform:translateY(-5px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
+    .tool-title{font-size:1.2rem;font-weight:bold;margin-bottom:.3rem}
+    .tool-desc{font-size:.9rem;color:#6b7280}
+
+    @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+    footer{text-align:center;padding:2rem 1rem;font-size:.9rem;color:#94a3b8;margin-top:2rem}
+    a{text-decoration:none;color:inherit}
+
+    /* Ad placeholders */
+    .ad-box{width:100%;height:100px;background:#e2e8f0;border-radius:10px;display:flex;justify-content:center;align-items:center;color:#475569;font-size:.9rem;margin:1.5rem 0}
+    @media (prefers-color-scheme:dark){.ad-box{background:#334155;color:#cbd5e1}}
+  </style>
+</head>
+
+<body>
+<nav>
+  <div class="logo">IBI TOOLS</div>
+  <input id="search" placeholder="Search tools...">
+</nav>
+
+<header>
+  <h1>Welcome to IBI TOOLS</h1>
+  <p>Fast and easy tools for images, PDFs, and AI — all free and simple.</p>
+</header>
+
+<div class="categories">
+  <div class="cat-btn" onclick="filterTools('image')">Image Tools</div>
+  <div class="cat-btn" onclick="filterTools('pdf')">PDF Tools</div>
+  <div class="cat-btn" onclick="filterTools('ai')">AI Tools</div>
+  <div class="cat-btn" onclick="filterTools('all')">Show All</div>
+</div>
+
+<!-- Ad slot placeholder -->
+<div class="ad-box">Ad Space</div>
+
+<div class="grid" id="toolGrid">
+  <a data-cat="image" href="/IBI-ImageCompressor/compressor.html" class="tool-card">
+  <div class="tool-title">
+    Image Compressor
+  </div>
+  <div class="tool-desc">
+    Reduce image size by quality or KB. 
+    <a href="https://example.com" target="_blank">Learn more</a>
+  </div>
+</a>
+
+  <a data-cat="image" href="#" class="tool-card"><div class="tool-title">Image Converter</div><div class="tool-desc">Convert JPG, PNG, WEBP, and more.</div></a>
+  <a data-cat="image" href="#" class="tool-card"><div class="tool-title">Resize Image</div><div class="tool-desc">Change width and height easily.</div></a>
+
+  <a data-cat="pdf" href="#" class="tool-card"><div class="tool-title">PDF Compressor</div><div class="tool-desc">Make PDF files smaller.</div></a>
+  <a data-cat="pdf" href="#" class="tool-card"><div class="tool-title">Image to PDF</div><div class="tool-desc">Turn images into a single PDF.</div></a>
+  <a data-cat="pdf" href="#" class="tool-card"><div class="tool-title">PDF to Images</div><div class="tool-desc">Convert PDF pages to JPG.</div></a>
+
+  <a data-cat="ai" href="#" class="tool-card"><div class="tool-title">AI Image Cleaner</div><div class="tool-desc">Remove noise from images.</div></a>
+  <a data-cat="ai" href="#" class="tool-card"><div class="tool-title">AI Background Remover</div><div class="tool-desc">Remove backgrounds instantly.</div></a>
+</div>
+
+<footer>
+  Made by IBI — All tools are free to use.
+</footer>
+
+<script>
+const search = document.getElementById('search');
+const toolGrid = document.getElementById('toolGrid');
+
+search.oninput = () => {
+  const q = search.value.toLowerCase();
+  [...toolGrid.children].forEach(card => {
+    card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
+  });
+};
+
+function filterTools(cat){
+  [...toolGrid.children].forEach(card => {
+    if(cat === 'all') card.style.display = '';
+    else card.style.display = card.dataset.cat === cat ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
