@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IBI TOOLS — Audio Converter</title>
+<meta name="description" content="Convert audio files in your browser. Supports MP3, WAV, OGG. No uploads, fast and free.">
+
+<style>
+  :root{--bg:#071025;--card:#0b1220;--muted:#94a3b8;--accent:#7c3aed;--glass:rgba(255,255,255,0.03);--text:#e6eef8}
+  @media (prefers-color-scheme:light){:root{--bg:#f8fafc;--card:#ffffff;--muted:#475569;--accent:#0ea5a4;--glass:rgba(2,6,23,0.03);--text:#0f172a}}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:var(--text);padding:16px}
+  header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 12px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#5eead4,#60a5fa);display:flex;align-items:center;justify-content:center;color:#022;font-weight:700}
+  .container{max-width:1100px;margin:0 auto}
+  main{display:grid;grid-template-columns:1fr 360px;gap:16px}
+  @media(max-width:940px){main{grid-template-columns:1fr;padding:0}}
+  .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.4)}
+  .controls{display:grid;gap:12px}
+  .row{display:flex;gap:8px;align-items:center}
+  label{color:var(--muted);font-size:14px}
+  .muted{color:var(--muted)}
+  input,select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:inherit}
+  button{background:linear-gradient(90deg,var(--accent),#06b6d4);border:0;padding:8px 12px;border-radius:8px;color:#021;cursor:pointer;font-weight:600}
+  .preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
+  .preview{background:var(--glass);padding:8px;border-radius:8px;display:flex;flex-direction:column;gap:6px;align-items:center}
+  footer{margin-top:16px;text-align:center;color:var(--muted)}
+</style>
+
+<!-- ffmpeg.wasm -->
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+<!-- Top Ad Placeholder -->
+<ins class="adsbygoogle"
+     style="display:block;width:100%;height:90px"
+     data-ad-client="ca-app-pub-8860671837964713"
+     data-ad-slot="7527806690"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+<header class="container">
+  <div class="brand">
+    <div class="logo">IBI</div>
+    <div>
+      <div style="font-weight:700">IBI TOOLS</div>
+      <div class="muted" style="font-size:13px">Audio Converter — browser-only, free</div>
+    </div>
+  </div>
+  <div class="muted">Made by IBI</div>
+</header>
+
+<div class="container">
+<main>
+<section class="card" aria-labelledby="tool-title">
+<h2 id="tool-title">Audio Converter (MP3, WAV, OGG)</h2>
+<p class="muted">Upload audio files and choose the format to convert. Everything runs in your browser.</p>
+
+<div class="controls">
+  <div class="row">
+    <input id="fileInput" type="file" accept=".mp3,.wav,.ogg" multiple>
+    <button id="clearBtn">Clear</button>
+  </div>
+
+  <div class="row">
+    <label>Convert to:</label>
+    <select id="format">
+      <option value="mp3">MP3</option>
+      <option value="wav">WAV</option>
+      <option value="ogg">OGG</option>
+    </select>
+    <button id="convertBtn">Convert</button>
+    <button id="zipBtn">Download ZIP</button>
+  </div>
+
+  <div class="row" id="progress"></div>
+  <div id="results" class="preview-grid"></div>
+</div>
+</section>
+
+<aside>
+  <div class="card">
+    <h3>Info</h3>
+    <p class="muted">All conversions are done in your browser. No files are uploaded. Supports MP3, WAV, OGG.</p>
+  </div>
+</aside>
+</main>
+
+<!-- Bottom Ad Placeholder -->
+<ins class="adsbygoogle"
+     style="display:block;width:100%;height:90px"
+     data-ad-client="ca-app-pub-8860671837964713"
+     data-ad-slot="4485327494"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
+
+<footer>Made by IBI — IBI TOOLS</footer>
+</div>
+
+<script>
+const { createFFmpeg, fetchFile } = FFmpeg;
+const ffmpeg = createFFmpeg({ log: true });
+
+let files = [];
+
+const fileInput = document.getElementById('fileInput');
+const clearBtn = document.getElementById('clearBtn');
+const convertBtn = document.getElementById('convertBtn');
+const zipBtn = document.getElementById('zipBtn');
+const formatSelect = document.getElementById('format');
+const results = document.getElementById('results');
+const progress = document.getElementById('progress');
+
+fileInput.addEventListener('change', e => {
+  files = [...e.target.files];
+  renderFiles();
+});
+clearBtn.addEventListener('click', () => {
+  files = [];
+  fileInput.value = '';
+  renderFiles();
+});
+
+function renderFiles(){
+  results.innerHTML = '';
+  files.forEach((f,i)=>{
+    const div = document.createElement('div');
+    div.className='preview';
+    div.innerHTML=`<div class="muted">${f.name} (${Math.round(f.size/1024)} KB)</div>`;
+    results.appendChild(div);
+  });
+  progress.textContent=`0 / ${files.length}`;
+}
+
+async function convertFile(file, toFormat){
+  if(!ffmpeg.isLoaded()){ await ffmpeg.load(); }
+  const name = file.name.split('.').slice(0,-1).join('.');
+  ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+  const outName = `${name}.${toFormat}`;
+  await ffmpeg.run('-i', file.name, outName);
+  const data = ffmpeg.FS('readFile', outName);
+  return new Blob([data.buffer], { type: 'audio/' + toFormat });
+}
+
+convertBtn.addEventListener('click', async () => {
+  if(files.length===0) return alert('Pick some files first');
+  convertBtn.disabled = true; convertBtn.textContent='Converting...';
+  results.innerHTML='';
+  for(let i=0;i<files.length;i++){
+    const file = files[i];
+    const toFormat = formatSelect.value;
+    const blob = await convertFile(file,toFormat);
+    const div = document.createElement('div');
+    div.className='preview';
+    const a = document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=file.name.split('.').slice(0,-1).join('.')+'.'+toFormat;
+    a.textContent='Download '+file.name+' → '+toFormat.toUpperCase();
+    div.appendChild(a);
+    results.appendChild(div);
+    progress.textContent=`${i+1} / ${files.length}`;
+  }
+  convertBtn.disabled=false; convertBtn.textContent='Convert';
+});
+
+zipBtn.addEventListener('click', async () => {
+  if(files.length===0) return alert('Pick files first');
+  const zip = new JSZip();
+  zipBtn.disabled=true; zipBtn.textContent='Preparing...';
+  for(let i=0;i<files.length;i++){
+    const file = files[i];
+    const toFormat = formatSelect.value;
+    const blob = await convertFile(file,toFormat);
+    zip.file(file.name.split('.').slice(0,-1).join('.')+'.'+toFormat, blob);
+  }
+  const content = await zip.generateAsync({type:'blob'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(content);
+  a.download='converted_audio.zip';
+  a.click();
+  zipBtn.disabled=false; zipBtn.textContent='Download ZIP';
+});
+</script>
+</body>
+</html>
