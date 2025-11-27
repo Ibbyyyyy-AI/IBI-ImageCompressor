@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IBI TOOLS — Document Converters</title>
+  <meta name="description" content="IBI TOOLS Document Converters — Convert PDFs, DOCX, and TXT files in your browser. No uploads, 100% privacy.">
+
+  <style>
+    :root{
+      --bg:#071025; --card:#0b1220; --muted:#94a3b8; --accent:#7c3aed; --glass: rgba(255,255,255,0.03); --text:#e6eef8
+    }
+    @media (prefers-color-scheme:light){
+      :root{ --bg:#f8fafc; --card:#ffffff; --muted:#475569; --accent:#0ea5a4; --glass: rgba(2,6,23,0.03); --text:#0f172a }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:var(--text);padding:16px}
+    header, footer{max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+    .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#5eead4,#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#022}
+    .brand{display:flex;gap:12px;align-items:center}
+    .container{max-width:1100px;margin:0 auto}
+    main{display:grid;grid-template-columns:1fr;gap:16px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.4)}
+    .controls{display:grid;gap:12px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    label{color:var(--muted);font-size:14px}
+    input, select{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:inherit}
+    button{background:linear-gradient(90deg,var(--accent),#06b6d4);border:0;padding:8px 12px;border-radius:8px;color:#021;cursor:pointer;font-weight:600}
+    .preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
+    .preview{background:var(--glass);padding:8px;border-radius:8px;display:flex;flex-direction:column;gap:6px;align-items:center}
+    .muted{color:var(--muted)}
+  </style>
+
+  <!-- JSZip for ZIP download -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Ad -->
+  <ins class="adsbygoogle"
+       style="display:block;width:100%;height:90px"
+       data-ad-client="YOUR-AD-CLIENT"
+       data-ad-slot="YOUR-TOP-AD-SLOT"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <header>
+    <div class="brand">
+      <div class="logo">IBI</div>
+      <div>
+        <div style="font-weight:700">IBI TOOLS</div>
+        <div class="muted" style="font-size:13px">Document Converters — browser-only</div>
+      </div>
+    </div>
+    <div class="muted">Made by IBI</div>
+  </header>
+
+  <div class="container">
+    <main>
+      <section class="card">
+        <h2>Convert Documents</h2>
+        <div class="controls">
+          <div class="row">
+            <input id="fileInput" type="file" multiple>
+            <button id="clearBtn">Clear</button>
+          </div>
+
+          <div class="row">
+            <label>Convert to:</label>
+            <select id="format">
+              <option value="pdf">PDF</option>
+              <option value="txt">TXT</option>
+              <option value="png">PNG (PDF pages)</option>
+              <option value="jpg">JPG (PDF pages)</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <button id="convertAll">Convert All</button>
+            <button id="zipBtn">Download ZIP</button>
+          </div>
+        </div>
+
+        <div id="results" class="preview-grid"></div>
+      </section>
+    </main>
+
+    <!-- Bottom Ad -->
+    <ins class="adsbygoogle"
+         style="display:block;width:100%;height:90px"
+         data-ad-client="YOUR-AD-CLIENT"
+         data-ad-slot="YOUR-BOTTOM-AD-SLOT"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <footer>Made by IBI — IBI TOOLS</footer>
+  </div>
+
+  <!-- PDF.js for PDF conversion -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.7/pdf.min.js"></script>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const clearBtn = document.getElementById('clearBtn');
+    const formatSel = document.getElementById('format');
+    const convertAllBtn = document.getElementById('convertAll');
+    const zipBtn = document.getElementById('zipBtn');
+    const results = document.getElementById('results');
+
+    let currentFiles = [];
+
+    fileInput.addEventListener('change', (e)=>{
+      currentFiles = Array.from(e.target.files);
+      renderPreviews();
+    });
+
+    clearBtn.addEventListener('click', ()=>{
+      fileInput.value = '';
+      currentFiles = [];
+      renderPreviews();
+    });
+
+    function renderPreviews(){
+      results.innerHTML = '';
+      currentFiles.forEach(f=>{
+        const div=document.createElement('div'); div.className='preview';
+        const name=document.createElement('div'); name.textContent=f.name; name.className='muted';
+        div.appendChild(name); results.appendChild(div);
+      });
+    }
+
+    async function convertFile(file){
+      const fmt = formatSel.value;
+      if(fmt==='txt'){
+        const text = await file.text();
+        return new Blob([text], {type:'text/plain'});
+      }
+      if(fmt==='pdf'){
+        // DOCX to PDF or TXT to PDF - we will need library in future
+        // placeholder: just return original file for now
+        return file;
+      }
+      if(fmt==='png' || fmt==='jpg'){
+        if(file.type==='application/pdf'){
+          const pdfData = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({data: pdfData}).promise;
+          const canvas = document.createElement('canvas');
+          const page = await pdf.getPage(1);
+          const viewport = page.getViewport({scale:2});
+          canvas.width = viewport.width; canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d');
+          await page.render({canvasContext: ctx, viewport}).promise;
+          return new Promise(res=>canvas.toBlob(res, fmt==='png'?'image/png':'image/jpeg'));
+        } else {
+          return file;
+        }
+      }
+      return file;
+    }
+
+    convertAllBtn.addEventListener('click', async ()=>{
+      for(let i=0;i<currentFiles.length;i++){
+        const div=results.children[i];
+        div.textContent='Processing...';
+        const blob = await convertFile(currentFiles[i]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href=url; a.download=currentFiles[i].name.replace(/\.[^.]+$/,'')+'.'+formatSel.value; a.textContent='Download'; a.style.marginLeft='6px';
+        div.appendChild(a);
+      }
+    });
+
+    zipBtn.addEventListener('click', async ()=>{
+      if(currentFiles.length===0){ alert('No files'); return; }
+      const zip = new JSZip();
+      for(let i=0;i<currentFiles.length;i++){
+        const blob = await convertFile(currentFiles[i]);
+        zip.file(currentFiles[i].name.replace(/\.[^.]+$/,'')+'.'+formatSel.value, blob);
+      }
+      const out = await zip.generateAsync({type:'blob'});
+      const link = document.createElement('a'); link.href=URL.createObjectURL(out); link.download='docs.zip'; link.click();
+    });
+  </script>
+</body>
+</html>
