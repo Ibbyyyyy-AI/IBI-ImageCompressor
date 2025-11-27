@@ -1,0 +1,16 @@
+{
+  "name": "ibi-tools-yt-downloader",
+  "version": "1.0.0",
+  "description": "IBI TOOLS YouTube Downloader Backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "IBI",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "ytdl-core": "^4.11.0"
+  }
+}
