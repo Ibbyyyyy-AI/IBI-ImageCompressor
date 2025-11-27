@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IBI TOOLS — Edit Text on Image</title>
+<meta name="description" content="IBI TOOLS Edit Text Tool — Change words in your image in the browser. No apps needed.">
+
+<style>
+:root{
+  --bg:#071025; --card:#0b1220; --muted:#94a3b8; --accent:#7c3aed; --glass: rgba(255,255,255,0.03); --text:#e6eef8
+}
+@media (prefers-color-scheme:light){
+  :root{ --bg:#f8fafc; --card:#ffffff; --muted:#475569; --accent:#0ea5a4; --glass: rgba(2,6,23,0.03); --text:#0f172a }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:linear-gradient(180deg,var(--bg) 0%, #031124 100%);color:var(--text);padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 12px}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#5eead4,#60a5fa);display:flex;align-items:center;justify-content:center;color:#022;font-weight:700}
+.container{max-width:1100px;margin:0 auto}
+main{display:grid;grid-template-columns:1fr 360px;gap:16px}
+@media (max-width:940px){main{grid-template-columns:1fr;padding:0}}
+.card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.4)}
+.controls{display:grid;gap:12px}
+.row{display:flex;gap:8px;align-items:center}
+label{color:var(--muted);font-size:14px}
+input, select, textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:inherit}
+button{background:linear-gradient(90deg,var(--accent),#06b6d4);border:0;padding:8px 12px;border-radius:8px;color:#021;cursor:pointer;font-weight:600}
+.preview-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px}
+.preview{background:var(--glass);padding:8px;border-radius:8px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.thumb{width:100%;height:140px;object-fit:contain;background:#061428;border-radius:6px}
+.muted{color:var(--muted)}
+footer{margin-top:16px;text-align:center;color:var(--muted)}
+</style>
+
+</head>
+<body>
+
+<header class="container">
+  <div class="brand">
+    <div class="logo">IBI</div>
+    <div>
+      <div style="font-weight:700">IBI TOOLS</div>
+      <div class="muted" style="font-size:13px">Edit Text on Image — fast, private, browser-only</div>
+    </div>
+  </div>
+  <div class="muted">Made by IBI</div>
+</header>
+
+<div class="container">
+<main>
+<section class="card">
+<h2>Edit Text on Image</h2>
+<p class="muted">Upload an image, type the new words, and get a realistic edited image.</p>
+
+<div class="controls">
+  <div class="row">
+    <input type="file" id="fileInput" accept="image/*">
+  </div>
+  <div class="row">
+    <label>New Text:</label>
+    <textarea id="newText" placeholder="Type the text to replace..." rows="2"></textarea>
+  </div>
+  <div class="row">
+    <button id="editBtn">Edit Image</button>
+  </div>
+  <div class="row">
+    <div id="progress" class="muted"></div>
+  </div>
+  <div class="preview-grid">
+    <img id="resultImg" class="thumb" style="display:none">
+    <a id="downloadBtn" href="#" download="edited-image.png" style="display:none"><button>Download Image</button></a>
+  </div>
+</div>
+</section>
+
+<aside class="card">
+<h3>Info</h3>
+<p class="muted">This tool edits text in your image using a free HuggingFace API for inpainting. Works directly in the browser, no credit card needed.</p>
+</aside>
+</main>
+
+<footer>Made by IBI — IBI TOOLS</footer>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const newText = document.getElementById('newText');
+const editBtn = document.getElementById('editBtn');
+const resultImg = document.getElementById('resultImg');
+const downloadBtn = document.getElementById('downloadBtn');
+const progress = document.getElementById('progress');
+
+editBtn.addEventListener('click', async () => {
+  const file = fileInput.files[0];
+  const text = newText.value.trim();
+  if(!file || !text) { alert('Please upload an image and enter text.'); return; }
+  progress.textContent = 'Processing...';
+
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    const dataURL = e.target.result;
+
+    // --- Using HuggingFace Free Inpainting API ---
+    try {
+      const response = await fetch('https://hf.space/embed/akhaliq/inpainting/+/api/predict/', {
+        method: 'POST',
+        body: JSON.stringify({
+          data: [dataURL, text]
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const result = await response.json();
+      // result.data[0] contains base64 image
+      resultImg.src = result.data[0];
+      resultImg.style.display = 'block';
+      downloadBtn.href = result.data[0];
+      downloadBtn.style.display = 'inline-block';
+      progress.textContent = 'Done!';
+    } catch(err) {
+      console.error(err);
+      progress.textContent = 'Error editing image';
+    }
+  }
+  reader.readAsDataURL(file);
+});
+</script>
+
+</body>
+</html>
