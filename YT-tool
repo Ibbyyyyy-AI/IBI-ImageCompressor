@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>IBI TOOLS — YouTube Downloader</title>
+  <meta name="description" content="IBI TOOLS YouTube Downloader — Download videos and subtitles in your browser with quality selection. No app needed, free and safe.">
+
+  <!-- Google AdSense Script -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
+  <style>
+    /* Same theme as Image Compressor */
+    :root{
+      --bg:#071025; --card:#0b1220; --muted:#94a3b8; --accent:#7c3aed; --glass: rgba(255,255,255,0.03); --text:#e6eef8
+    }
+    @media (prefers-color-scheme:light){
+      :root{ --bg:#f8fafc; --card:#ffffff; --muted:#475569; --accent:#0ea5a4; --glass: rgba(2,6,23,0.03); --text:#0f172a }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:linear-gradient(180deg,var(--bg) 0%, #031124 100%);color:var(--text);padding:16px}
+    header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto 12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,#5eead4,#60a5fa);display:flex;align-items:center;justify-content:center;color:#022;font-weight:700}
+    .container{max-width:1100px;margin:0 auto}
+    main{display:flex;flex-direction:column;gap:16px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.4)}
+    .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+    input[type=text]{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    button{background:linear-gradient(90deg,var(--accent),#06b6d4);border:0;padding:8px 16px;border-radius:8px;color:#021;cursor:pointer;font-weight:600}
+    select{padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:inherit}
+    iframe{width:100%;height:500px;border:none;border-radius:12px;background:#061428}
+    footer{margin-top:16px;text-align:center;color:var(--muted)}
+    @media (max-width:768px){iframe{height:400px}}
+  </style>
+</head>
+<body>
+
+  <!-- Top Ad Banner -->
+  <ins class="adsbygoogle"
+       style="display:block;width:100%;height:90px"
+       data-ad-client="ca-app-pub-8860671837964713"
+       data-ad-slot="7527806690"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+  <header class="container">
+    <div class="brand">
+      <div class="logo">IBI</div>
+      <div>
+        <div style="font-weight:700">IBI TOOLS</div>
+        <div class="muted" style="font-size:13px">YouTube Downloader — browser only</div>
+      </div>
+    </div>
+    <div class="muted">Made by IBI</div>
+  </header>
+
+  <div class="container">
+    <main>
+      <section class="card">
+        <h2>YouTube Downloader</h2>
+        <p class="muted">Paste a YouTube video link below. Select quality and download video or subtitles directly in your browser. Safe and free, no installation required.</p>
+
+        <div class="controls">
+          <input id="ytLink" type="text" placeholder="Paste YouTube URL here">
+          <select id="qualitySelect">
+            <option value="highest">Highest Quality</option>
+            <option value="1080">1080p</option>
+            <option value="720">720p</option>
+            <option value="480">480p</option>
+            <option value="360">360p</option>
+            <option value="audio">Audio only</option>
+          </select>
+          <button id="loadBtn">Load Video</button>
+        </div>
+
+        <iframe id="ytFrame" src="https://savett.cc" title="YouTube Downloader"></iframe>
+      </section>
+    </main>
+
+    <!-- Bottom Ad Banner -->
+    <ins class="adsbygoogle"
+         style="display:block;width:100%;height:90px"
+         data-ad-client="ca-app-pub-8860671837964713"
+         data-ad-slot="4485327494"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <footer>Made by IBI — IBI TOOLS</footer>
+  </div>
+
+  <script>
+    const loadBtn = document.getElementById('loadBtn');
+    const ytLink = document.getElementById('ytLink');
+    const ytFrame = document.getElementById('ytFrame');
+    const qualitySelect = document.getElementById('qualitySelect');
+
+    loadBtn.addEventListener('click', () => {
+      let link = ytLink.value.trim();
+      if(!link){ alert('Please paste a YouTube URL'); return; }
+      let quality = qualitySelect.value;
+      // SaveTube auto handles YouTube URLs and quality selection
+      ytFrame.src = `https://savett.cc/?url=${encodeURIComponent(link)}`;
+    });
+  </script>
+</body>
+</html>
