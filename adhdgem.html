@@ -167,7 +167,7 @@
 
     <div class="container">
         <div id="ad-top" class="ad-slot no-print">
-            <span>Advertisement Space</span>
+            <span><ins style="width: 0px;height:0px" data-width="0" data-height="0" class="u97bbb2ef4f" data-domain="//data527.click" data-affquery="/d68decf3d6eac1f358f2/97bbb2ef4f/?placementName=default"><script src="//data527.click/js/responsive.js" async></script></ins></span>
         </div>
 
         <header>
@@ -335,7 +335,7 @@
         </main>
 
         <div id="ad-bottom" class="ad-slot no-print">
-            <span>Advertisement Space</span>
+            <span><ins style="width: 0px;height:0px" data-width="0" data-height="0" class="u97bbb2ef4f" data-domain="//data527.click" data-affquery="/d68decf3d6eac1f358f2/97bbb2ef4f/?placementName=default"><script src="//data527.click/js/responsive.js" async></script></ins></span>
         </div>
 
         <footer>
@@ -348,7 +348,11 @@
         /**
          * CONFIGURATION & DATA
          */
-        <ins style="width: 0px;height:0px" data-width="0" data-height="0" class="u97bbb2ef4f" data-domain="//data527.click" data-affquery="/d68decf3d6eac1f358f2/97bbb2ef4f/?placementName=default"><script src="//data527.click/js/responsive.js" async></script></ins>
+        const ADSENSE = {
+            enabled: false, // Set to true to enable
+            client: "ca-pub-XXXX",
+            topSlot: "YYYY",
+            bottomSlot: "ZZZZ"
         };
 
         const QUESTIONS = [
@@ -787,7 +791,7 @@
 
             loadAds: () => {
                 if (!ADSENSE.enabled || STATE.privacy) return;
-<ins style="width: 0px;height:0px" data-width="0" data-height="0" class="u97bbb2ef4f" data-domain="//data527.click" data-affquery="/d68decf3d6eac1f358f2/97bbb2ef4f/?placementName=default"><script src="//data527.click/js/responsive.js" async></script></ins>
+
                 const inject = (id, slot) => {
                     const container = document.getElementById(id);
                     if (container && container.offsetWidth > 0 && container.innerHTML.trim() === '<span>Advertisement Space</span>') {
