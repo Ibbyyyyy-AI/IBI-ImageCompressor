@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADHD Self-Check | IBI TOOLS</title>
+    <meta name="description" content="Free, private, and fast ADHD screening tool (ASRS v1.1). Features charts, history tracking, and voice input. No data leaves your device.">
+    <meta name="theme-color" content="#071025">
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MedicalWebPage",
+      "name": "ADHD Self-Check Tool",
+      "description": "A web-based implementation of the ASRS v1.1 Screen for ADHD.",
+      "audience": {
+        "@type": "Patient",
+        "audienceType": "adults"
+      },
+      "aspect": "Diagnosis",
+      "author": {
+        "@type": "Organization",
+        "name": "IBI TOOLS"
+      }
+    }
+    </script>
+
+    <style>
+        :root {
+            /* Default Dark Mode */
+            --bg: #071025;
+            --card: #0b1220;
+            --muted: #94a3b8;
+            --accent: #7c3aed; /* Violet */
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #e6eef8;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --font-main: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --success: #10b981;
+            --danger: #ef4444;
+            --chart-color-1: #3b82f6;
+            --chart-color-2: #8b5cf6;
+        }
+
+        /* Light Mode */
+        [data-theme="light"] {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --muted: #64748b;
+            --accent: #0ea5a4; /* Teal */
+            --glass: rgba(2, 6, 23, 0.03);
+            --border: rgba(0, 0, 0, 0.1);
+            --text: #0f172a;
+        }
+
+        /* AMOLED Mode */
+        [data-theme="amoled"] {
+            --bg: #000000;
+            --card: #000000;
+            --muted: #a3a3a3;
+            --accent: #d946ef; /* Fuchsia */
+            --glass: rgba(255, 255, 255, 0.0);
+            --border: #333333;
+            --text: #ffffff;
+        }
+
+        /* High Contrast */
+        [data-theme="contrast"] {
+            --bg: #ffffff;
+            --card: #ffffff;
+            --muted: #000000;
+            --accent: #0000ff;
+            --glass: none;
+            --border: #000000;
+            --text: #000000;
+        }
+
+        * { box-sizing: border-box; transition: background 0.3s ease, color 0.3s ease; }
+        body { margin: 0; font-family: var(--font-main); background-color: var(--bg); color: var(--text); line-height: 1.6; }
+        
+        /* Layout */
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; min-height: 100vh; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 2fr 1fr; } }
+
+        /* Header */
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        .logo-area { display: flex; align-items: center; gap: 12px; }
+        .logo { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #4f46e5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white; font-size: 1.2rem; }
+        .brand-text h1 { margin: 0; font-size: 1.2rem; letter-spacing: 0.5px; }
+        .brand-text p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+        .header-controls { display: flex; gap: 10px; }
+        
+        /* Buttons */
+        .btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+        .btn:hover { background: var(--glass); transform: translateY(-1px); }
+        .btn-primary { background: var(--accent); color: white; border: none; font-weight: 600; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-icon { padding: 8px; border-radius: 50%; width: 36px; height: 36px; justify-content: center; }
+        .btn-danger { color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+
+        /* Cards */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(10px); }
+
+        /* Question Interface */
+        .progress-container { margin-bottom: 20px; }
+        .progress-bar-bg { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+        .progress-text { font-size: 0.8rem; color: var(--muted); display: flex; justify-content: space-between; margin-top: 6px; }
+
+        .question-text { font-size: 1.3rem; font-weight: 600; margin-bottom: 24px; min-height: 60px; }
+        .options-grid { display: grid; gap: 10px; }
+        .option-btn { width: 100%; padding: 16px; text-align: left; border: 1px solid var(--border); background: var(--glass); border-radius: 10px; cursor: pointer; transition: all 0.2s; position: relative; color: var(--text); font-size: 1rem; }
+        .option-btn:hover { background: rgba(124, 58, 237, 0.1); border-color: var(--accent); }
+        .option-btn.selected { background: var(--accent); color: white; border-color: var(--accent); }
+        .option-key { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); font-size: 0.7rem; opacity: 0.5; border: 1px solid currentColor; padding: 2px 6px; border-radius: 4px; }
+
+        /* Results */
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(var(--accent) var(--p, 0%), var(--glass) 0%); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .score-circle::before { content: ''; position: absolute; inset: 10px; background: var(--card); border-radius: 50%; }
+        .score-value { position: relative; font-size: 2rem; font-weight: bold; }
+        .result-badge { display: inline-block; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: 600; margin-bottom: 15px; }
+        .badge-high { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-low { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+        /* Charts */
+        .chart-container { width: 100%; height: 250px; position: relative; margin-top: 20px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; }
+        canvas { width: 100%; height: 100%; }
+
+        /* History */
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .history-item:last-child { border-bottom: none; }
+        .history-score { font-weight: bold; color: var(--accent); }
+
+        /* Footer & Ads */
+        .ad-slot { width: 100%; min-height: 100px; background: var(--glass); display: flex; align-items: center; justify-content: center; border-radius: 8px; margin: 20px 0; color: var(--muted); font-size: 0.8rem; overflow: hidden; }
+        footer { text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 40px; padding-bottom: 20px; }
+        
+        /* Toggles */
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--muted); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Print Styles */
+        @media print {
+            body { background: white; color: black; }
+            .no-print, header .header-controls, .ad-slot, .btn, footer { display: none !important; }
+            .card { border: 1px solid #ddd; box-shadow: none; page-break-inside: avoid; }
+            .chart-container { border: 1px solid #ccc; height: 300px; }
+            .print-only { display: block !important; }
+            .container { max-width: 100%; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="ad-top" class="ad-slot no-print">
+            <span>Advertisement Space</span>
+        </div>
+
+        <header>
+            <div class="logo-area">
+                <div class="logo">IBI</div>
+                <div class="brand-text">
+                    <h1>IBI TOOLS</h1>
+                    <p>ADHD Self-Check — Private, Fast, Offline</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button class="btn btn-icon" id="theme-btn" title="Toggle Theme" aria-label="Toggle Theme">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                </button>
+                <div class="btn" style="padding: 4px 12px; gap: 8px;">
+                    <span style="font-size: 0.8rem">Privacy Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="privacy-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid">
+            <div class="main-col">
+                
+                <div id="start-screen" class="card fade-in">
+                    <h2>Adult ADHD Self-Report Scale (ASRS-v1.1)</h2>
+                    <p style="color: var(--muted)">This screening tool is based on the World Health Organization's ASRS v1.1. It takes about 2-3 minutes. All processing happens in your browser—no data is sent to any server.</p>
+                    
+                    <div style="background: var(--glass); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent); margin: 20px 0;">
+                        <strong>Instructions:</strong> Please answer the questions below, rating yourself on each of the criteria shown using the scale provided. As you answer each question, select the box that best describes how you have felt and conducted yourself over the past 6 months.
+                    </div>
+
+                    <button class="btn btn-primary" onclick="app.startQuiz()" style="width: 100%; justify-content: center; padding: 14px;">
+                        Start Assessment
+                    </button>
+                </div>
+
+                <div id="quiz-screen" class="card hidden">
+                    <div class="progress-container">
+                        <div class="progress-text">
+                            <span id="progress-text">Question 1 of 18</span>
+                            <span id="progress-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="progress-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="question-area" class="fade-in">
+                        <div class="question-text" id="q-text">Loading...</div>
+                        
+                        <div class="options-grid" role="group" aria-labelledby="q-text">
+                            <button class="option-btn" onclick="app.handleAnswer(0)">Never <span class="option-key">1</span></button>
+                            <button class="option-btn" onclick="app.handleAnswer(1)">Rarely <span class="option-key">2</span></button>
+                            <button class="option-btn" onclick="app.handleAnswer(2)">Sometimes <span class="option-key">3</span></button>
+                            <button class="option-btn" onclick="app.handleAnswer(3)">Often <span class="option-key">4</span></button>
+                            <button class="option-btn" onclick="app.handleAnswer(4)">Very Often <span class="option-key">5</span></button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; margin-top: 30px; border-top: 1px solid var(--border); padding-top: 15px;">
+                        <button class="btn" onclick="app.prevQuestion()" id="btn-back" disabled>Back</button>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn" onclick="app.toggleTTS()" id="btn-tts" aria-label="Read Question">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                            </button>
+                            <button class="btn" onclick="app.startVoiceInput()" id="btn-voice" aria-label="Voice Answer">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="voice-status" style="text-align: center; font-size: 0.8rem; color: var(--accent); height: 20px; margin-top: 5px;"></div>
+                </div>
+
+                <div id="result-screen" class="card hidden">
+                    <div class="print-only">
+                        <h1>IBI TOOLS - ADHD Screening Report</h1>
+                        <p>Date: <span id="print-date"></span></p>
+                    </div>
+
+                    <h2 class="no-print">Your Results</h2>
+                    
+                    <div style="text-align: center;">
+                        <div class="score-circle" id="score-circle">
+                            <span class="score-value" id="score-val">0%</span>
+                        </div>
+                        <div id="result-badge" class="result-badge">Calculating...</div>
+                    </div>
+
+                    <p id="result-text" style="text-align: center; margin-bottom: 25px;"></p>
+
+                    <div style="background: var(--glass); padding: 15px; border-radius: 8px; font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">
+                        <strong>Disclaimer:</strong> This tool is for educational purposes only and does not constitute a medical diagnosis. Only a qualified healthcare professional can diagnose ADHD.
+                    </div>
+
+                    <h3>Symptom Profile</h3>
+                    <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 20px;">
+                        <div>
+                            <h4>Inattention</h4>
+                            <div class="chart-container">
+                                <canvas id="chart-inattention"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h4>Hyperactivity</h4>
+                            <div class="chart-container">
+                                <canvas id="chart-hyperactivity"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4>Detailed Response Profile</h4>
+                    <div class="chart-container" style="height: 200px;">
+                         <canvas id="chart-bar"></canvas>
+                    </div>
+
+                    <div class="no-print" style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button class="btn" onclick="window.print()">Print Result</button>
+                        <button class="btn" onclick="app.shareResult()">Share Result</button>
+                        <button class="btn" onclick="app.copySummary()">Copy Summary</button>
+                        <button class="btn btn-primary" onclick="app.reset()">Start Over</button>
+                    </div>
+                </div>
+
+            </div> <div class="sidebar">
+                
+                <div class="card no-print" id="history-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin:0; font-size: 1rem;">History</h3>
+                        <button class="btn btn-icon" onclick="app.clearHistory()" title="Clear History" style="width: 28px; height: 28px; padding: 0;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                    <div id="history-list" style="max-height: 250px; overflow-y: auto;">
+                        <p style="font-size: 0.8rem; color: var(--muted); text-align: center;">No history yet.</p>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3 style="margin-top:0; font-size: 1rem;">FAQ</h3>
+                    <details style="margin-bottom: 10px; font-size: 0.9rem;">
+                        <summary style="cursor: pointer; font-weight: 500;">What is ASRS v1.1?</summary>
+                        <p style="font-size: 0.85rem; color: var(--muted); margin-top: 5px;">The Adult ADHD Self-Report Scale (ASRS-v1.1) Symptom Checklist is a tool developed in conjunction with the World Health Organization (WHO) to screen for adult ADHD.</p>
+                    </details>
+                    <details style="margin-bottom: 10px; font-size: 0.9rem;">
+                        <summary style="cursor: pointer; font-weight: 500;">Is my data saved?</summary>
+                        <p style="font-size: 0.85rem; color: var(--muted); margin-top: 5px;">Results are stored ONLY in your browser's LocalStorage. If you enable Privacy Mode, nothing is saved at all.</p>
+                    </details>
+                    <details style="margin-bottom: 10px; font-size: 0.9rem;">
+                        <summary style="cursor: pointer; font-weight: 500;">What do the scores mean?</summary>
+                        <p style="font-size: 0.85rem; color: var(--muted); margin-top: 5px;">A high number of checkmarks in the shaded areas (Often/Very Often) typically indicates symptoms consistent with ADHD.</p>
+                    </details>
+                </div>
+
+                <div id="dev-panel" class="card hidden" style="margin-top: 20px; border-color: var(--accent);">
+                    <h3 style="margin:0; font-size: 0.9rem; color: var(--accent);">DEV MODE</h3>
+                    <pre id="dev-output" style="font-size: 0.7rem; background: rgba(0,0,0,0.2); padding: 5px; overflow-x: auto;">Waiting...</pre>
+                    <button class="btn btn-danger" onclick="localStorage.clear(); location.reload();" style="width: 100%; margin-top: 5px;">Nuke Storage</button>
+                </div>
+
+            </div>
+        </main>
+
+        <div id="ad-bottom" class="ad-slot no-print">
+            <span>Advertisement Space</span>
+        </div>
+
+        <footer>
+            Made by IBI — IBI TOOLS <br>
+            <span style="font-size: 0.7rem; opacity: 0.7;">v2.0.0 | Offline Capable</span>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * CONFIGURATION & DATA
+         */
+        const ADSENSE = {
+            enabled: false, // Set to true to enable
+            client: "ca-pub-XXXX",
+            topSlot: "YYYY",
+            bottomSlot: "ZZZZ"
+        };
+
+        const QUESTIONS = [
+            // Part A
+            { id: 1, part: 'A', text: "How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?" },
+            { id: 2, part: 'A', text: "How often do you have difficulty getting things in order when you have to do a task that requires organization?" },
+            { id: 3, part: 'A', text: "How often do you have problems remembering appointments or obligations?" },
+            { id: 4, part: 'A', text: "When you have a task that requires a lot of thought, how often do you avoid or delay getting started?" },
+            { id: 5, part: 'A', text: "How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?" },
+            { id: 6, part: 'A', text: "How often do you feel overly active and compelled to do things, like you were driven by a motor?" },
+            // Part B
+            { id: 7, part: 'B', text: "How often do you make careless mistakes when you have to work on a boring or difficult project?" },
+            { id: 8, part: 'B', text: "How often do you have difficulty keeping your attention when you are doing boring or repetitive work?" },
+            { id: 9, part: 'B', text: "How often do you have difficulty concentrating on what people say to you, even when they are speaking to you directly?" },
+            { id: 10, part: 'B', text: "How often do you misplace or have difficulty finding things at home or at work?" },
+            { id: 11, part: 'B', text: "How often are you distracted by activity or noise around you?" },
+            { id: 12, part: 'B', text: "How often do you leave your seat in meetings or other situations in which you are expected to remain seated?" },
+            { id: 13, part: 'B', text: "How often do you feel restless or fidgety?" },
+            { id: 14, part: 'B', text: "How often do you have difficulty unwinding and relaxing when you have time to yourself?" },
+            { id: 15, part: 'B', text: "How often do you find yourself talking too much when you are in social situations?" },
+            { id: 16, part: 'B', text: "When you’re in a conversation, how often do you find yourself finishing the sentences of the people you are talking to?" },
+            { id: 17, part: 'B', text: "How often do you have difficulty waiting your turn in situations when turn taking is required?" },
+            { id: 18, part: 'B', text: "How often do you interrupt others when they are busy?" }
+        ];
+
+        // Scoring: 0=Never, 1=Rarely, 2=Sometimes, 3=Often, 4=Very Often
+        // Thresholds for "Positive" response in ASRS v1.1
+        // Q1-3: >= 2 (Sometimes)
+        // Q4-6: >= 3 (Often)
+        // Q7-9: >= 2
+        // Q10-18: >= 2 (Usually, but simplified scoring often counts >=3 as significant for all to reduce false positives in self-tests, 
+        // however, we will implement the standard ASRS shaded box logic).
+        // Standard ASRS Shaded Boxes (Positive):
+        // Q1: Sometimes(2)+
+        // Q2: Sometimes(2)+
+        // Q3: Sometimes(2)+
+        // Q4: Often(3)+
+        // Q5: Often(3)+
+        // Q6: Often(3)+
+        // We will stick to the Prompt instruction: "posCountA = number of Part A items with value >= 3". 
+        // PROMPT OVERRIDE: The prompt specifically asks for "posCountA = number of Part A items with value >= 3".
+        
+        const STATE = {
+            currentQ: 0,
+            answers: new Array(18).fill(null),
+            history: [],
+            privacy: false,
+            speaking: false
+        };
+
+        const ELEMENTS = {
+            start: document.getElementById('start-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            result: document.getElementById('result-screen'),
+            questionText: document.getElementById('q-text'),
+            progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
+            progressPercent: document.getElementById('progress-percent'),
+            btnBack: document.getElementById('btn-back'),
+            themeBtn: document.getElementById('theme-btn'),
+            privacyToggle: document.getElementById('privacy-toggle'),
+            historyList: document.getElementById('history-list'),
+            voiceStatus: document.getElementById('voice-status'),
+            devPanel: document.getElementById('dev-panel'),
+            devOutput: document.getElementById('dev-output')
+        };
+
+        /**
+         * APP LOGIC
+         */
+        const app = {
+            init: () => {
+                app.loadSettings();
+                app.renderHistory();
+                app.checkDevMode();
+                app.loadAds();
+                
+                // Keyboard support
+                document.addEventListener('keydown', (e) => {
+                    if (ELEMENTS.quiz.classList.contains('hidden')) return;
+                    if (e.key >= '1' && e.key <= '5') app.handleAnswer(parseInt(e.key) - 1);
+                });
+            },
+
+            loadSettings: () => {
+                const theme = localStorage.getItem('ibi_theme') || 'dark';
+                document.body.setAttribute('data-theme', theme);
+                
+                // Privacy
+                const privacy = localStorage.getItem('ibi_privacy') === 'true';
+                ELEMENTS.privacyToggle.checked = privacy;
+                STATE.privacy = privacy;
+                app.togglePrivacyUI();
+
+                ELEMENTS.privacyToggle.addEventListener('change', (e) => {
+                    STATE.privacy = e.target.checked;
+                    localStorage.setItem('ibi_privacy', STATE.privacy);
+                    app.togglePrivacyUI();
+                });
+
+                ELEMENTS.themeBtn.addEventListener('click', app.cycleTheme);
+            },
+
+            cycleTheme: () => {
+                const themes = ['dark', 'light', 'amoled', 'contrast'];
+                let current = document.body.getAttribute('data-theme') || 'dark';
+                let next = themes[(themes.indexOf(current) + 1) % themes.length];
+                document.body.setAttribute('data-theme', next);
+                localStorage.setItem('ibi_theme', next);
+                app.drawCharts(); // Redraw for color changes
+            },
+
+            togglePrivacyUI: () => {
+                if (STATE.privacy) {
+                    document.getElementById('history-card').classList.add('hidden');
+                    document.querySelectorAll('.ad-slot').forEach(el => el.classList.add('hidden'));
+                } else {
+                    document.getElementById('history-card').classList.remove('hidden');
+                    document.querySelectorAll('.ad-slot').forEach(el => el.classList.remove('hidden'));
+                    app.loadAds();
+                }
+            },
+
+            startQuiz: () => {
+                ELEMENTS.start.classList.add('hidden');
+                ELEMENTS.result.classList.add('hidden');
+                ELEMENTS.quiz.classList.remove('hidden');
+                STATE.currentQ = 0;
+                STATE.answers = new Array(18).fill(null);
+                app.renderQuestion();
+            },
+
+            renderQuestion: () => {
+                const q = QUESTIONS[STATE.currentQ];
+                
+                // Animation reset
+                ELEMENTS.questionText.parentElement.classList.remove('fade-in');
+                void ELEMENTS.questionText.parentElement.offsetWidth; // trigger reflow
+                ELEMENTS.questionText.parentElement.classList.add('fade-in');
+
+                ELEMENTS.questionText.textContent = `${STATE.currentQ + 1}. ${q.text}`;
+                
+                // Update Progress
+                const pct = Math.round((STATE.currentQ / 18) * 100);
+                ELEMENTS.progressBar.style.width = `${pct}%`;
+                ELEMENTS.progressText.textContent = `Question ${STATE.currentQ + 1} of 18`;
+                ELEMENTS.progressPercent.textContent = `${pct}%`;
+
+                // Update Buttons
+                const options = document.querySelectorAll('.option-btn');
+                options.forEach((btn, idx) => {
+                    btn.classList.remove('selected');
+                    if (STATE.answers[STATE.currentQ] === idx) {
+                        btn.classList.add('selected');
+                    }
+                });
+
+                ELEMENTS.btnBack.disabled = STATE.currentQ === 0;
+            },
+
+            handleAnswer: (val) => {
+                STATE.answers[STATE.currentQ] = val;
+                if (STATE.currentQ < 17) {
+                    setTimeout(() => {
+                        STATE.currentQ++;
+                        app.renderQuestion();
+                    }, 200);
+                } else {
+                    app.showResults();
+                }
+                app.updateDev();
+            },
+
+            prevQuestion: () => {
+                if (STATE.currentQ > 0) {
+                    STATE.currentQ--;
+                    app.renderQuestion();
+                }
+            },
+
+            showResults: () => {
+                ELEMENTS.quiz.classList.add('hidden');
+                ELEMENTS.result.classList.remove('hidden');
+                document.getElementById('print-date').textContent = new Date().toLocaleDateString();
+
+                // Scoring Logic based on prompt
+                const score = STATE.answers.reduce((a, b) => a + (b || 0), 0);
+                const percent = Math.round((score / 72) * 100);
+                
+                // Part A Logic (Items 1-6 aka indices 0-5)
+                // Prompt: posCountA = number of Part A items with value >= 3 (Often/Very Often)
+                let posCountA = 0;
+                for(let i=0; i<6; i++) {
+                    if (STATE.answers[i] >= 3) posCountA++;
+                }
+
+                let likelihood = "Low/Moderate Likelihood";
+                let badgeClass = "badge-low";
+                
+                // ASRS rule: >= 4 positives in Part A is highly consistent with ADHD
+                if (posCountA >= 4) {
+                    likelihood = "High Likelihood";
+                    badgeClass = "badge-high";
+                }
+
+                // Render Score
+                const scoreCircle = document.getElementById('score-circle');
+                scoreCircle.style.setProperty('--p', `${percent}%`);
+                document.getElementById('score-val').textContent = `${percent}%`;
+                
+                const badge = document.getElementById('result-badge');
+                badge.className = `result-badge ${badgeClass}`;
+                badge.textContent = likelihood;
+
+                const txt = document.getElementById('result-text');
+                if (likelihood.includes("High")) {
+                    txt.textContent = `Your responses indicate symptoms highly consistent with ADHD. You scored ${posCountA} significant responses in Part A (Threshold is 4). It is recommended to share these results with a healthcare professional.`;
+                } else {
+                    txt.textContent = `Your responses indicate symptoms that are less consistent with ADHD. You scored ${posCountA} significant responses in Part A. However, if you are struggling, consult a professional regardless of this score.`;
+                }
+
+                app.drawCharts();
+                app.saveResult(score, likelihood, percent);
+            },
+
+            saveResult: (score, label, percent) => {
+                if (STATE.privacy) return;
+                
+                const entry = {
+                    date: new Date().toISOString(),
+                    score: score,
+                    percent: percent,
+                    label: label
+                };
+                
+                STATE.history.unshift(entry);
+                try {
+                    localStorage.setItem('ibi_adhd_history', JSON.stringify(STATE.history));
+                    app.renderHistory();
+                } catch(e) {
+                    console.error("Storage error", e);
+                }
+            },
+
+            renderHistory: () => {
+                if (STATE.privacy) return;
+                try {
+                    const raw = localStorage.getItem('ibi_adhd_history');
+                    if (raw) STATE.history = JSON.parse(raw);
+                    
+                    ELEMENTS.historyList.innerHTML = '';
+                    if (STATE.history.length === 0) {
+                        ELEMENTS.historyList.innerHTML = '<p style="text-align:center;color:var(--muted)">No history yet</p>';
+                        return;
+                    }
+
+                    STATE.history.forEach(item => {
+                        const date = new Date(item.date).toLocaleDateString();
+                        const div = document.createElement('div');
+                        div.className = 'history-item';
+                        div.innerHTML = `
+                            <span>${date}</span>
+                            <span class="history-score">${item.percent}% (${item.label.split(' ')[0]})</span>
+                        `;
+                        ELEMENTS.historyList.appendChild(div);
+                    });
+                } catch(e) {}
+            },
+
+            clearHistory: () => {
+                if(confirm("Clear all history?")) {
+                    localStorage.removeItem('ibi_adhd_history');
+                    STATE.history = [];
+                    app.renderHistory();
+                }
+            },
+
+            reset: () => {
+                ELEMENTS.result.classList.add('hidden');
+                ELEMENTS.start.classList.remove('hidden');
+            },
+
+            // --- CANVAS CHARTS ---
+            drawCharts: () => {
+                // 1. Bar Chart (Detailed Profile)
+                const barCanvas = document.getElementById('chart-bar');
+                const ctxBar = barCanvas.getContext('2d');
+                barCanvas.width = barCanvas.offsetWidth;
+                barCanvas.height = barCanvas.offsetHeight;
+                
+                const barW = barCanvas.width / 18;
+                const maxH = barCanvas.height;
+                
+                ctxBar.clearRect(0, 0, barCanvas.width, barCanvas.height);
+                
+                STATE.answers.forEach((val, i) => {
+                    const h = (val / 4) * (maxH - 20); // Scale 0-4
+                    const x = i * barW + 2;
+                    const y = maxH - h;
+                    
+                    // Color based on value
+                    ctxBar.fillStyle = val >= 3 ? '#ef4444' : (val >= 2 ? '#f59e0b' : '#10b981');
+                    ctxBar.fillRect(x, y, barW - 4, h);
+                    
+                    // Labels
+                    if (i % 2 === 0) {
+                       ctxBar.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+                       ctxBar.font = '10px sans-serif';
+                       ctxBar.fillText(i+1, x + 5, maxH - h - 5);
+                    }
+                });
+
+                // 2. Radar/Polar approximations for Subscales
+                // Inattention: Q1-Q9 (indices 0-8)
+                // Hyperactivity: Q10-Q18 (indices 9-17)
+                const inattScore = STATE.answers.slice(0,9).reduce((a,b)=>a+b,0);
+                const hyperScore = STATE.answers.slice(9,18).reduce((a,b)=>a+b,0);
+                const maxSub = 36; // 9 questions * 4
+
+                app.drawGauge(document.getElementById('chart-inattention'), inattScore, maxSub, 'Inattention');
+                app.drawGauge(document.getElementById('chart-hyperactivity'), hyperScore, maxSub, 'Hyperactivity');
+            },
+
+            drawGauge: (canvas, val, max, label) => {
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width = canvas.offsetWidth;
+                const h = canvas.height = canvas.offsetHeight;
+                const cx = w / 2;
+                const cy = h / 2 + 20;
+                const r = Math.min(w, h) / 2 - 20;
+
+                ctx.clearRect(0,0,w,h);
+
+                // Background arc
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, Math.PI, 0);
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--glass');
+                ctx.stroke();
+
+                // Value arc
+                const pct = val / max;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, Math.PI, Math.PI + (pct * Math.PI));
+                ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--accent');
+                ctx.stroke();
+
+                // Text
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text');
+                ctx.font = 'bold 24px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${Math.round(pct*100)}%`, cx, cy - 10);
+                
+                ctx.font = '12px sans-serif';
+                ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted');
+                ctx.fillText(`${val}/${max} pts`, cx, cy + 20);
+            },
+
+            // --- AUDIO FEATURES ---
+            toggleTTS: () => {
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    return;
+                }
+                const msg = new SpeechSynthesisUtterance(QUESTIONS[STATE.currentQ].text);
+                window.speechSynthesis.speak(msg);
+            },
+
+            startVoiceInput: () => {
+                if (!('webkitSpeechRecognition' in window)) {
+                    ELEMENTS.voiceStatus.textContent = "Voice not supported in this browser.";
+                    return;
+                }
+
+                const recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.lang = 'en-US';
+                
+                ELEMENTS.voiceStatus.textContent = "Listening... (Say 'Never', 'Rarely'...)";
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript.toLowerCase();
+                    ELEMENTS.voiceStatus.textContent = `Heard: "${transcript}"`;
+                    
+                    const map = {
+                        'never': 0, 'zero': 0,
+                        'rarely': 1, 'one': 1,
+                        'sometimes': 2, 'two': 2,
+                        'often': 3, 'three': 3,
+                        'very often': 4, 'very': 4, 'four': 4
+                    };
+
+                    for (let key in map) {
+                        if (transcript.includes(key)) {
+                            app.handleAnswer(map[key]);
+                            return;
+                        }
+                    }
+                    setTimeout(() => ELEMENTS.voiceStatus.textContent = "Try again", 1000);
+                };
+                
+                recognition.start();
+            },
+
+            // --- UTILS ---
+            shareResult: () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'IBI ADHD Screening',
+                        text: `I just completed the ADHD self-check on IBI Tools. Score: ${document.getElementById('score-val').textContent}.`,
+                        url: window.location.href
+                    });
+                } else {
+                    alert("Sharing not supported on this device.");
+                }
+            },
+
+            copySummary: () => {
+                const txt = document.getElementById('result-text').textContent;
+                navigator.clipboard.writeText(txt).then(() => alert("Summary copied!"));
+            },
+
+            checkDevMode: () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('dev') === '1') {
+                    ELEMENTS.devPanel.classList.remove('hidden');
+                }
+            },
+
+            updateDev: () => {
+                ELEMENTS.devOutput.textContent = JSON.stringify({
+                    q: STATE.currentQ,
+                    ans: STATE.answers
+                }, null, 2);
+            },
+
+            loadAds: () => {
+                if (!ADSENSE.enabled || STATE.privacy) return;
+
+                const inject = (id, slot) => {
+                    const container = document.getElementById(id);
+                    if (container && container.offsetWidth > 0 && container.innerHTML.trim() === '<span>Advertisement Space</span>') {
+                        container.innerHTML = '';
+                        const ins = document.createElement('ins');
+                        ins.className = 'adsbygoogle';
+                        ins.style.display = 'block';
+                        ins.setAttribute('data-ad-client', ADSENSE.client);
+                        ins.setAttribute('data-ad-slot', slot);
+                        ins.setAttribute('data-ad-format', 'auto');
+                        ins.setAttribute('data-full-width-responsive', 'true');
+                        container.appendChild(ins);
+                        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
+                    }
+                };
+                
+                // Defer slightly
+                setTimeout(() => {
+                    inject('ad-top', ADSENSE.topSlot);
+                    inject('ad-bottom', ADSENSE.bottomSlot);
+                }, 1000);
+            }
+        };
+
+        // Init
+        window.addEventListener('DOMContentLoaded', app.init);
+
+    </script>
+</body>
+</html>
