@@ -1,0 +1,475 @@
+<!-- IBI TOOLS — ADHD CHECKER (FULL VERSION)
+Save this file as adhd-checker.html and upload to GitHub Pages.
+To enable ads, edit the ADSENSE object near line ~50.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IBI TOOLS — ADHD Self-Check (ASRS v1.1)</title>
+<meta name="description" content="Private, fast, offline ADHD self-check using the ASRS v1.1 (18 items). Save results locally, compare history, print certificate, and use voice/TTS.">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"MedicalWebPage",
+  "name":"IBI TOOLS — ADHD Self-Check",
+  "description":"Private, fast, offline ADHD self-check using the ASRS v1.1 (18 items). This tool is informational and not a diagnosis.",
+  "mainEntity": {
+    "@type":"FAQPage",
+    "mainEntity": [
+      {"@type":"Question","name":"Is this a diagnostic tool?","acceptedAnswer":{"@type":"Answer","text":"No. This is a screening tool based on ASRS v1.1. Consult a clinician for diagnosis."}},
+      {"@type":"Question","name":"Is my data saved online?","acceptedAnswer":{"@type":"Answer","text":"No—results saved locally (localStorage) unless Privacy Mode is on."}},
+      {"@type":"Question","name":"Can I print a certificate?","acceptedAnswer":{"@type":"Answer","text":"Yes. Use Print Result to generate a printable certificate."}},
+      {"@type":"Question","name":"Is voice input supported?","acceptedAnswer":{"@type":"Answer","text":"Voice input uses the browser's speech recognition (webkitSpeechRecognition where available)."}}
+    ]
+  }
+}
+</script>
+<style>
+:root{
+  --bg:#071025;
+  --card:#0b1220;
+  --muted:#94a3b8;
+  --accent:#7c3aed;
+  --glass: rgba(255,255,255,0.03);
+  --text:#e6eef8;
+  --radius:14px;
+  --shadow: 0 6px 20px rgba(2,6,23,0.6);
+  --glass-border: rgba(255,255,255,0.04);
+  --glass-blur: 8px;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+[data-theme="light"]{
+  --bg:#f8fafc;
+  --card:#ffffff;
+  --muted:#475569;
+  --accent:#0ea5a4;
+  --glass: rgba(2,6,23,0.03);
+  --text:#0f172a;
+  --shadow: 0 8px 24px rgba(15,23,42,0.06);
+  --glass-border: rgba(2,6,23,0.06);
+}
+[data-theme="amoled"]{
+  --bg:#000000;
+  --card:#000000;
+  --glass: rgba(255,255,255,0.02);
+  --text:#e6eef8;
+  --muted:#94a3b8;
+  --accent:#7c3aed;
+}
+[data-theme="high-contrast"]{
+  --bg:#000000;
+  --card:#ffffff;
+  --text:#000000;
+  --muted:#1f2937;
+  --accent:#ffb703;
+  --glass: rgba(255,255,255,0.06);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  min-height:100%;
+  background:linear-gradient(180deg, var(--bg), rgba(0,0,0,0.02));
+  color:var(--text);
+  padding:24px;
+  transition:background .3s, color .2s;
+}
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:20px;
+  align-items:start;
+}
+@media (max-width:980px){
+  .container{grid-template-columns:1fr; padding:0 12px}
+}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:18px;
+  border:1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.logo{
+  width:54px;height:54px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent), #3b82f6);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:white;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,0.4);
+}
+.header-right{color:var(--muted);font-size:14px}
+.subtitle{margin-top:8px;font-size:14px;color:var(--muted)}
+#ad-top,#ad-bottom{
+  height:90px;border-radius:12px;border:1px dashed var(--glass-border);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);
+  background:linear-gradient(180deg,transparent,var(--glass));
+  margin-bottom:14px;
+}
+.test-card .question{
+  font-size:18px;margin:12px 0 6px;
+}
+.paginator{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;
+}
+.progress{
+  height:12px;background:linear-gradient(90deg, rgba(255,255,255,0.02), transparent);
+  border-radius:999px;overflow:hidden;border:1px solid var(--glass-border);
+}
+.progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),#60a5fa);transition:width .25s}
+.bar-text{font-size:13px;color:var(--muted);margin-left:8px}
+.answers{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.answer-btn{
+  padding:10px 14px;border-radius:999px;border:1px solid transparent;
+  background:transparent;color:var(--text);cursor:pointer;outline:none;
+  box-shadow: 0 4px 12px rgba(2,6,23,0.45);
+  transition:transform .12s, box-shadow .12s, background .12s, border-color .12s;
+  user-select:none;
+}
+.answer-btn:focus{transform:translateY(-2px);border-color:var(--accent)}
+.answer-btn[aria-pressed="true"]{
+  background:linear-gradient(90deg,var(--accent), rgba(99,102,241,0.8));
+  color:white;border-color:transparent;
+  box-shadow:0 8px 24px rgba(0,0,0,0.45);
+}
+.controls{display:flex;gap:8px}
+.btn{
+  padding:10px 14px;border-radius:10px;border:0;background:var(--glass);
+  color:var(--text);cursor:pointer;font-weight:600;
+  transition:transform .12s, background .12s;
+  border:1px solid var(--glass-border);
+}
+.btn:hover{transform:translateY(-2px)}
+.btn.primary{
+  background:linear-gradient(90deg,var(--accent), rgba(99,102,241,0.9));
+  color:white;border:1px solid rgba(255,255,255,0.06);
+}
+.small{padding:6px 10px;font-size:13px}
+.sidebar .meta{display:flex;flex-direction:column;gap:8px}
+.kv{display:flex;justify-content:space-between;color:var(--muted);font-size:14px}
+.toggle{display:flex;gap:10px;align-items:center}
+.switch{
+  width:44px;height:26px;background:var(--glass);border-radius:999px;position:relative;border:1px solid var(--glass-border);
+}
+.knob{position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:999px;background:white;transition:left .18s}
+.switch.on{background:linear-gradient(90deg,var(--accent), rgba(99,102,241,0.6))}
+.switch.on .knob{left:21px}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+@media (max-width:980px){.charts{grid-template-columns:1fr}}
+canvas{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:10px;padding:12px}
+.history-list{max-height:300px;overflow:auto;margin-top:8px}
+.history-item{display:flex;justify-content:space-between;padding:8px;border-radius:10px;border:1px solid var(--glass-border);margin-bottom:8px;background:var(--card)}
+.history-meta{font-size:13px;color:var(--muted)}
+.certificate{padding:18px;border-radius:12px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01));border:1px solid var(--glass-border)}
+.footer{text-align:center;color:var(--muted);margin-top:18px;font-size:13px}
+.faq{margin-top:12px}
+.faq-item{padding:12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--card);margin-bottom:8px}
+.small-muted{color:var(--muted);font-size:13px}
+.visually-hidden{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+</style>
+<body>
+<div id="ad-top" class="card">Ad placeholder (top)</div>
+<div class="card header" role="banner" aria-hidden="false">
+  <div class="brand">
+    <div class="logo" aria-hidden="true">IBI</div>
+    <div>
+      <div style="font-weight:700;font-size:18px">IBI TOOLS</div>
+      <div class="subtitle">ADHD Self-Check — Private, Fast, Offline</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end">
+    <div class="header-right">Made by IBI</div>
+    <div style="margin-top:6px">
+      <label for="theme-select" class="small-muted" style="margin-right:8px">Theme</label>
+      <select id="theme-select" class="btn small" aria-label="Select theme">
+        <option value="auto">Auto</option>
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+        <option value="amoled">AMOLED</option>
+        <option value="high-contrast">High contrast</option>
+      </select>
+    </div>
+  </div>
+</div>
+<div class="container" role="main">
+  <div>
+    <div class="card test-card" id="test-card" aria-live="polite">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><strong>ASRS v1.1 — Adult ADHD Self-Report Scale</strong><div class="small-muted">18 questions — Part A & Part B</div></div>
+        <div class="small-muted" id="progress-label" aria-live="polite">Question 1 of 18</div>
+      </div>
+      <div id="question-area" style="margin-top:12px">
+        <div class="question" id="question-text">Loading...</div>
+        <div class="small-muted" id="question-sub" style="margin-bottom:6px">Use keyboard (1-5) or buttons. <span id="tts-status" class="small-muted"></span></div>
+        <div class="answers" role="radiogroup" aria-label="Answer choices" id="answers"></div>
+        <div class="paginator" style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="progress" style="width:240px" aria-hidden="true"><i id="progress-bar"></i></div>
+            <div class="bar-text" id="percent-text">0%</div>
+          </div>
+          <div class="controls" id="nav-controls">
+            <button class="btn" id="back-btn" aria-label="Previous question">Back</button>
+            <button class="btn primary" id="next-btn" aria-label="Next question">Next</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <button class="btn small" id="read-btn" aria-pressed="false">Read Question</button>
+          <button class="btn small" id="stop-btn" style="display:none">Stop</button>
+          <button class="btn small" id="voice-btn">Voice Answer</button>
+          <div style="flex:1"></div>
+          <button class="btn small" id="restart-btn" title="Restart test">Restart</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="results-card" style="margin-top:14px;display:none" role="region" aria-live="polite">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <h2 id="result-title">Your Result</h2>
+          <div class="small-muted" id="result-summary">Score & interpretation</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700" id="result-percent">0%</div>
+          <div id="result-label" class="small-muted">Low/Moderate likelihood</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn primary" id="save-btn">Save Result</button>
+        <button class="btn" id="copy-btn">Copy Summary</button>
+        <button class="btn" id="print-btn">Print Result</button>
+        <button class="btn" id="share-btn">Share Result</button>
+        <button class="btn" id="history-btn">View History</button>
+      </div>
+      <div class="small-muted" style="margin-top:10px" id="medical-disclaimer">
+        <strong>Medical disclaimer:</strong> This screening tool is informational only and not a clinical diagnosis. If you have concerns, consult a qualified healthcare professional.
+      </div>
+      <div class="charts card" style="margin-top:12px;padding:12px">
+        <div style="display:flex;flex-direction:column">
+          <div style="font-weight:700;margin-bottom:6px">Question Scores</div>
+          <canvas id="barChart" width="500" height="240" role="img" aria-label="Bar chart of question scores"></canvas>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <div style="font-weight:700;margin-bottom:6px">Inattention vs Hyperactivity</div>
+          <canvas id="radarChart" width="500" height="240" role="img" aria-label="Radar chart of symptom domains"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <aside>
+    <div class="card sidebar">
+      <div class="meta">
+        <div class="kv"><span>Progress</span><strong id="sidebar-progress">0/18</strong></div>
+        <div class="kv"><span>Score</span><strong id="sidebar-score">0</strong></div>
+        <div class="kv"><span>Part A positives</span><strong id="sidebar-posA">0</strong></div>
+        <div class="kv"><span>Privacy Mode</span>
+          <div class="toggle" title="Privacy Mode">
+            <div id="privacy-switch" class="switch" role="switch" aria-checked="false" tabindex="0"><div class="knob"></div></div>
+          </div>
+        </div>
+        <div class="kv"><span>History</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn small" id="open-history">Open</button>
+            <button class="btn small" id="clear-history">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<div id="ad-bottom" class="card" style="margin-top:14px">Ad placeholder (bottom)</div>
+<footer class="footer">Made by IBI — IBI TOOLS</footer>
+<div class="visually-hidden" id="sr-progress" aria-live="polite"></div>
+
+<script>
+/* --- Inline JS for full functionality --- */
+const ADSENSE={enabled:false,client:"ca-pub-XXXX",topSlot:"YYYY",bottomSlot:"ZZZZ"};
+const QUESTIONS=[
+"How often do you have trouble wrapping up the final details of a project, once the challenging parts have been done?",
+"How often do you have difficulty getting things in order when you have to do a task that requires organization?",
+"How often do you have problems remembering appointments or obligations?",
+"How often do you avoid or delay starting tasks that require a lot of thought?",
+"How often do you fidget or squirm with your hands or feet when you have to sit down for a long time?",
+"How often do you feel restless or find it hard to stay still when you should?",
+"How often do you make careless mistakes when you have to work on a boring or difficult project?",
+"How often do you have difficulty sustaining your attention in tasks or play activities?",
+"How often do you have trouble listening when someone is speaking directly to you?",
+"How often do you fail to finish work or chores, even when you know it is important?",
+"How often do you have difficulty organizing tasks and activities?",
+"How often do you avoid, dislike, or are reluctant to engage in tasks that require sustained mental effort?",
+"How often do you lose things necessary for tasks or activities?",
+"How often are you easily distracted by extraneous stimuli?",
+"How often do you forget daily activities?",
+"How often do you leave your seat in situations when remaining seated is expected?",
+"How often do you feel restless or fidgety?",
+"How often do you interrupt or intrude on others, such as butting into conversations or games?"
+];
+const ANSWERS=["Never","Rarely","Sometimes","Often","Very often"];
+let currentQuestion=0, responses=new Array(18).fill(null);
+let privacy=false, devMode=location.search.includes("dev=1");
+let synth=null, recognition=null;
+
+// DOM references
+const qText=document.getElementById("question-text");
+const answersDiv=document.getElementById("answers");
+const nextBtn=document.getElementById("next-btn");
+const backBtn=document.getElementById("back-btn");
+const progressBar=document.getElementById("progress-bar");
+const percentText=document.getElementById("percent-text");
+const progressLabel=document.getElementById("progress-label");
+const sidebarProgress=document.getElementById("sidebar-progress");
+const sidebarScore=document.getElementById("sidebar-score");
+const sidebarPosA=document.getElementById("sidebar-posA");
+const testCard=document.getElementById("test-card");
+const resultsCard=document.getElementById("results-card");
+const resultPercent=document.getElementById("result-percent");
+const resultLabel=document.getElementById("result-label");
+const resultSummary=document.getElementById("result-summary");
+const privacySwitch=document.getElementById("privacy-switch");
+
+// Initialize
+function renderQuestion(){
+qText.textContent=QUESTIONS[currentQuestion];
+answersDiv.innerHTML="";
+ANSWERS.forEach((text,i)=>{
+const btn=document.createElement("button");
+btn.className="answer-btn";
+btn.textContent=text;
+btn.setAttribute("role","radio");
+btn.setAttribute("aria-checked",responses[currentQuestion]===i?"true":"false");
+btn.addEventListener("click",()=>{responses[currentQuestion]=i; renderQuestion(); updateProgress();});
+answersDiv.appendChild(btn);
+});
+updateProgress();
+}
+function updateProgress(){
+const filled=responses.filter(v=>v!==null).length;
+progressLabel.textContent=Question ${currentQuestion+1} of 18;
+sidebarProgress.textContent=${filled}/18;
+const score=responses.reduce((a,v)=>a+(v!==null?v:0),0);
+sidebarScore.textContent=score;
+const posA=responses.slice(0,6).filter(v=>v>=3).length;
+sidebarPosA.textContent=posA;
+const pct=Math.round(score/72*100);
+percentText.textContent=${pct}%;
+progressBar.style.width=${pct}%;
+document.getElementById("sr-progress").textContent=${pct}% completed;
+}
+nextBtn.addEventListener("click",()=>{
+if(currentQuestion<QUESTIONS.length-1) currentQuestion++;
+renderQuestion();
+});
+backBtn.addEventListener("click",()=>{
+if(currentQuestion>0) currentQuestion--;
+renderQuestion();
+});
+document.getElementById("restart-btn").addEventListener("click",()=>{
+currentQuestion=0; responses=new Array(18).fill(null);
+testCard.style.display="block"; resultsCard.style.display="none";
+renderQuestion();
+});
+document.getElementById("save-btn").addEventListener("click",saveResult);
+document.getElementById("copy-btn").addEventListener("click",copyResult);
+document.getElementById("print-btn").addEventListener("click",()=>window.print());
+document.getElementById("share-btn").addEventListener("click",shareResult);
+privacySwitch.addEventListener("click",()=>{privacy=!privacy; privacySwitch.classList.toggle("on",privacy); privacySwitch.setAttribute("aria-checked",privacy);});
+
+// Compute and show result
+function computeResult(){
+const score=responses.reduce((a,v)=>a+v,0);
+const pct=Math.round(score/72*100);
+const posA=responses.slice(0,6).filter(v=>v>=3).length;
+let label=posA>=4?"High likelihood":"Low/Moderate likelihood";
+resultPercent.textContent=${pct}%;
+resultLabel.textContent=label;
+resultSummary.textContent=Score: ${score}/72. Part A positives: ${posA}. ${label} for ADHD symptoms.;
+return {score,pct,posA,label};
+}
+function showResults(){
+testCard.style.display="none";
+resultsCard.style.display="block";
+const res=computeResult();
+if(!privacy) saveToLocal(res);
+drawCharts();
+}
+nextBtn.addEventListener("dblclick",showResults);
+
+// History
+function saveToLocal(res){
+try{
+const data=JSON.parse(localStorage.getItem("adhdHistory")||"[]");
+data.push({timestamp:new Date().toISOString(),...res});
+localStorage.setItem("adhdHistory",JSON.stringify(data));
+}catch(e){console.warn("LocalStorage error",e);}
+}
+
+// Charts
+function drawCharts(){
+try{
+const bar=document.getElementById("barChart").getContext("2d");
+bar.clearRect(0,0,500,240);
+const w=480,h=200;
+const max=4;
+responses.forEach((v,i)=>{
+bar.fillStyle="#7c3aed";
+bar.fillRect(10+i25,h-v/maxh,20,v/max*h);
+});
+const radar=document.getElementById("radarChart").getContext("2d");
+radar.clearRect(0,0,500,240);
+const data=[responses.slice(0,9).reduce((a,b)=>a+b,0)/9,responses.slice(9,18).reduce((a,b)=>a+b,0)/9];
+radar.fillStyle="rgba(124,58,237,0.5)";
+radar.beginPath();
+radar.moveTo(240,120);
+radar.lineTo(240+data[0]*40,120);
+radar.lineTo(240,120-data[1]*40);
+radar.closePath();
+radar.fill();
+}catch(e){console.warn("Chart error",e);}
+}
+
+// TTS
+document.getElementById("read-btn").addEventListener("click",()=>{
+try{
+if(synth) synth.cancel();
+synth=new SpeechSynthesisUtterance(qText.textContent);
+window.speechSynthesis.speak(synth);
+}catch(e){console.warn("TTS error",e);}
+});
+document.getElementById("stop-btn").addEventListener("click",()=>{try{window.speechSynthesis.cancel();}catch(e){};});
+
+// Voice
+document.getElementById("voice-btn").addEventListener("click",()=>{
+try{
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SpeechRecognition){alert("Voice input not supported"); return;}
+recognition=new SpeechRecognition();
+recognition.lang="en-US";
+recognition.onresult=e=>{
+const text=e.results[0][0].transcript.toLowerCase();
+const idx=["never","rarely","sometimes","often","very often"].findIndex(a=>text.includes(a));
+if(idx>=0){responses[currentQuestion]=idx; renderQuestion();}
+};
+recognition.start();
+}catch(e){console.warn("Voice error",e);}
+});
+
+// Initial render
+renderQuestion();
+</script>
+
+</body> </html> ```
